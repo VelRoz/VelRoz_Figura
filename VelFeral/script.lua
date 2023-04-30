@@ -26,7 +26,7 @@ PREVIOUS_STATE  = STATE
 laydown = animations.vel.laydown
 walk = animations.vel.walking_normal
 function model_parts_init()
-    body = models.vel.Vel.D_Body
+    body   = models.vel.Vel.D_Body
     head   = body.D_Neck.D_Head
     tail_0 = body.D_Tail
     tail_1 = tail_0.Tail2
@@ -35,14 +35,16 @@ function model_parts_init()
 
     body.D_Tail.Slit:setVisible(false)
     body.D_Tail.Donut:setVisible(false)
+    log("MODEL_PARTS_INIT FINISHED")
 end
 
 --Actions
 function action_wheel_init()
-    local _my_page = action_wheel:newPage()
-    local _action_sleep = _my_page:newAction()
-
-    local _action_toggle_genitals = _my_page:newAction()
+    local _my_page                  = action_wheel:newPage()
+    local _action_sleep             = _my_page:newAction()
+    local _action_toggle_genitals   = _my_page:newAction()
+    local _action_toggle_erection   = _my_page:newAction()
+    local _action_toggle_throb      = _my_page:newAction()
 
     --_action_sleep
     _action_sleep:setItem("red_bed")
@@ -55,7 +57,13 @@ function action_wheel_init()
     _action_toggle_genitals:onToggle(pings.toggle_genitals)
     _action_toggle_genitals:toggled(false)
 
+    --_action_toggle_erection
+    _action_toggle_erection:setItem("carrot")
+    _action_toggle_erection:title("Toggle Erection")
+    _action_toggle_erection:onToggle(pings.toggle_genitals)
+    _action_toggle_erection:toggled(false)
     action_wheel:setPage(_my_page)
+    log("ACTION_WHEEL_INIT FINISHED")
 end
 
 function pings.random_sleep()
@@ -67,7 +75,7 @@ function pings.random_sleep()
         laydown:speed(0.7)
     end
 
-    animations:stopAll()
+    walk:stop()
     laydown:play()
 end
 
@@ -76,8 +84,10 @@ function pings.toggle_genitals(is_toggled)
     body.D_Tail.Donut:setVisible(is_toggled)
     if (is_toggled == true) then
         animations.vel.cock_erect:play()
+        animations.vel.cock_throb:play()
     else
         animations.vel.cock_erect:stop()
+        animations.vel.cock_throb:stop()
     end
 end
 
@@ -98,12 +108,14 @@ function pings.toggle_sleeping()
         --blend = animations.vel.laydown2:getBlend()
         --blend_dir = 1
     end
-    log(STATE)
+    --log(STATE)
 end
 
 --  START   --
+log("MAIN LOADED")
 model_parts_init()
 action_wheel_init()
+
 
 player_vel = vectors.vec3(0,0,0)
 animations.vel.idle:play()
