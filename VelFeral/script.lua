@@ -33,35 +33,71 @@ function model_parts_init()
     tail_2 = tail_1.Tail3
     tail_3 = tail_2.Tail4
 
-    body.D_Tail.Slit:setVisible(false)
-    body.D_Tail.Donut:setVisible(false)
+
+    tex = models.vel:getTextures()
+    models.vel.Vel.D_Body.D_ForeLeft:setPrimaryTexture("CUSTOM",tex[2]) --_tex[2] is default
+    models.vel.Vel.D_Body.D_ForeRight:setPrimaryTexture("CUSTOM",tex[2]) --tex[5] is socks
+    models.vel.Vel.D_Body.D_HindLeftLeg:setPrimaryTexture("CUSTOM",tex[2])
+    models.vel.Vel.D_Body.D_HindRightLeg:setPrimaryTexture("CUSTOM",tex[2])
+    --body.D_Tail.Slit:setVisible(false)
+    body.D_Tail.Slit.Cocc:setVisible(false)
+    --body.D_Tail.Donut:setVisible(false)
+    animations.vel.genitals_leave:play()
+    animations.vel.cock_leave:play()
+    
     log("MODEL_PARTS_INIT FINISHED")
 end
 
 --Actions
 function action_wheel_init()
-    local _my_page                  = action_wheel:newPage()
+    _my_page                        = action_wheel:newPage()
     local _action_sleep             = _my_page:newAction()
     local _action_toggle_genitals   = _my_page:newAction()
     local _action_toggle_erection   = _my_page:newAction()
     local _action_toggle_throb      = _my_page:newAction()
-
+    local _action_toggle_socks      = _my_page:newAction()
+    local _col                      = vectors.vec3(255/255,128/255,0/255) --Vel's eye color in RGB
+    local _hover_col                = vectors.vec3(255/255,0/255,0/255) --Red
+    
     --_action_sleep
     _action_sleep:setItem("red_bed")
     _action_sleep:title("Sleep")
     _action_sleep:onToggle(pings.toggle_sleeping)
+    _action_sleep:setToggleColor(_col)
+    _action_sleep:setHoverColor(_hover_col)
 
     --_action_toggle_genitals
     _action_toggle_genitals:setItem("cake")
     _action_toggle_genitals:title("Toggle Genitals")
     _action_toggle_genitals:onToggle(pings.toggle_genitals)
     _action_toggle_genitals:toggled(false)
+    _action_toggle_genitals:setToggleColor(_col)
+    _action_toggle_genitals:setHoverColor(_hover_col)
 
     --_action_toggle_erection
     _action_toggle_erection:setItem("carrot")
     _action_toggle_erection:title("Toggle Erection")
-    _action_toggle_erection:onToggle(pings.toggle_genitals)
+    _action_toggle_erection:onToggle(pings.toggle_erection)
     _action_toggle_erection:toggled(false)
+    _action_toggle_erection:setToggleColor(_col)
+    _action_toggle_erection:setHoverColor(_hover_col)
+
+    --_action_toggle_throb
+    _action_toggle_throb:setItem("golden_carrot")
+    _action_toggle_throb:title("Toggle Throb")
+    _action_toggle_throb:onToggle(pings.toggle_throb)
+    _action_toggle_throb:toggled(false)
+    _action_toggle_throb:setToggleColor(_col)
+    _action_toggle_throb:setHoverColor(_hover_col)
+
+    --_action_toggle_throb
+    _action_toggle_socks:setItem("leather_boots")
+    _action_toggle_socks:title("Toggle Programmer Mode")
+    _action_toggle_socks:onToggle(pings.toggle_socks)
+    _action_toggle_socks:toggled(false)
+    _action_toggle_socks:setToggleColor(_col)
+    _action_toggle_socks:setHoverColor(_hover_col)
+
     action_wheel:setPage(_my_page)
     log("ACTION_WHEEL_INIT FINISHED")
 end
@@ -79,20 +115,10 @@ function pings.random_sleep()
     laydown:play()
 end
 
-function pings.toggle_genitals(is_toggled)
-    body.D_Tail.Slit:setVisible(is_toggled)
-    body.D_Tail.Donut:setVisible(is_toggled)
-    if (is_toggled == true) then
-        animations.vel.cock_erect:play()
-        animations.vel.cock_throb:play()
-    else
-        animations.vel.cock_erect:stop()
-        animations.vel.cock_throb:stop()
-    end
-end
-
 function pings.toggle_sleeping()
     PREVIOUS_STATE = STATE
+    --local _act2 = _my_page:getAction(1) --toggle_sleeping
+    --log(_act2:getToggleColor())
     if (STATE == SLEEPING) then
         STATE = IDLE
         
@@ -111,11 +137,73 @@ function pings.toggle_sleeping()
     --log(STATE)
 end
 
+function pings.toggle_genitals(is_toggled)
+    --body.D_Tail.Slit:setVisible(is_toggled)
+    --body.D_Tail.Donut:setVisible(is_toggled)
+    local _act = _my_page:getAction(2) --toggle_genitals
+    local _act2 = _my_page:getAction(3) --toggle_erection
+    if (is_toggled == true) then
+        animations.vel.genitals_leave:stop()
+        animations.vel.genitals_squish:play()
+    else
+        animations.vel.genitals_squish:stop()
+        animations.vel.genitals_leave:play()
+    end
+
+    if (_act2:isToggled()) and not (is_toggled) then
+        animations.vel.cock_leave:play()
+        _act2:toggled(false)
+    end
+end
+
+function pings.toggle_erection(is_toggled)
+    local _act = _my_page:getAction(2) --toggle_genitals
+    local _act2 = _my_page:getAction(3) --toggle_erection
+    body.D_Tail.Slit.Cocc:setVisible(true)
+    if (_act:isToggled()) then
+        if (is_toggled == true) then
+            animations.vel.cock_leave:stop()
+            animations.vel.cock_erect:stop()
+            animations.vel.cock_erect:play()
+        else
+            animations.vel.cock_erect:stop()
+            animations.vel.cock_leave:stop()
+            animations.vel.cock_leave:play()
+        end
+    else
+        _act2:toggled(false)
+    end
+end
+
+function pings.toggle_throb(is_toggled)
+    if (is_toggled == true) then
+        animations.vel.cock_throb:play()
+    else
+        animations.vel.cock_throb:stop()
+    end
+end
+
+function pings.toggle_socks(is_togged)
+    if (is_togged == true) then
+        models.vel.Vel.D_Body.D_ForeLeft:setPrimaryTexture("CUSTOM",tex[5]) --_tex[2] is default
+        models.vel.Vel.D_Body.D_ForeRight:setPrimaryTexture("CUSTOM",tex[5]) --tex[5] is socks
+        models.vel.Vel.D_Body.D_HindLeftLeg:setPrimaryTexture("CUSTOM",tex[5])
+        models.vel.Vel.D_Body.D_HindRightLeg:setPrimaryTexture("CUSTOM",tex[5])
+    else
+        models.vel.Vel.D_Body.D_ForeLeft:setPrimaryTexture("CUSTOM",tex[2]) --_tex[2] is default
+        models.vel.Vel.D_Body.D_ForeRight:setPrimaryTexture("CUSTOM",tex[2]) --tex[5] is socks
+        models.vel.Vel.D_Body.D_HindLeftLeg:setPrimaryTexture("CUSTOM",tex[2])
+        models.vel.Vel.D_Body.D_HindRightLeg:setPrimaryTexture("CUSTOM",tex[2])
+    end
+end
+
+
 --  START   --
 log("MAIN LOADED")
 model_parts_init()
 action_wheel_init()
 
+--log(models.vel:getPrimaryTexture())
 
 player_vel = vectors.vec3(0,0,0)
 animations.vel.idle:play()
@@ -151,6 +239,7 @@ end)
 events.TICK:register(function ()
     player_vel = player:getVelocity()
     laydown:setOverride(true)
+    --log_wait(animations.vel.genitals_squish:getPlayState(),60)
     --local part_mat = head:partToWorldMatrix()
     --nameplate.ENTITY:setPivot(part_mat[1][1],3+part_mat[2][2],part_mat[3][3])
     --nameplate.ENTITY:setPivot(0,3,0)
