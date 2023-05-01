@@ -103,7 +103,7 @@ function action_wheel_init()
     _action_toggle_snout:setItem("player_head{SkullOwner:wowMemeify}")
     _action_toggle_snout:title("Toggle Visible Snout")
     _action_toggle_snout:onToggle(pings.toggle_snout)
-    _action_toggle_snout:toggled(false)
+    _action_toggle_snout:toggled(true)
     _action_toggle_snout:setToggleColor(_col)
     _action_toggle_snout:setHoverColor(_hover_col)
     log("ACTIONS: ",_my_page:getActions())
@@ -235,6 +235,11 @@ head_rot = vectors.vec3(0,0,0)
 original_pos = models.vel.Vel:getPos()
 orignial_player_rot = vectors.vec3(0,0,0)
 
+right_item = head.D_LowerJaw.RightItemPivot:newItem("right_item") 
+right_item_world = models.vel_head.World.D_Head.D_LowerJaw.RightItemPivot:newItem("right_item_world")
+left_item = head.D_LowerJaw.LeftItemPivot:newItem("left_item") 
+left_item_world = models.vel_head.World.D_Head.D_LowerJaw.LeftItemPivot:newItem("left_item_world")
+
 --X -> Y | Y -> X | Z -> Z
 --log(nameplate.ENTITY:getPos())
 
@@ -245,9 +250,11 @@ events.ENTITY_INIT:register(function ()
     --log(player:getPos())
     player_vel = player:getVelocity()
     player_speed = vectors.vec3(player_vel.x, 0, player_vel.z):length()
+    
     --log(player_vel)
 end)
 
+--models.vel_head.World.D_Head.D_LowerJaw.RightItemPivot:setPi
 --  TICK    --
 events.TICK:register(function ()
     player_vel = player:getVelocity()
@@ -330,27 +337,51 @@ end)
 
 --  RENDER  --
 events.RENDER:register(function (delta, context)
+    right_item:setDisplayMode("THIRD_PERSON_RIGHT_HAND")
+    right_item:pos(1,-1,0)
+    right_item:rot(90,180,0)
+    right_item:scale(1.4,1.4,1.4)
+    right_item:setItem(player:getItem(1))
+    right_item_world:setDisplayMode("THIRD_PERSON_RIGHT_HAND")
+    right_item_world:pos(1,-1,0)
+    right_item_world:rot(90,180,0)
+    right_item_world:scale(1.4,1.4,1.4)
+    right_item_world:setItem(player:getItem(1))
+
+    left_item:setDisplayMode("THIRD_PERSON_LEFT_HAND")
+    left_item:pos(1,-1,0)
+    left_item:rot(90,180,0)
+    left_item:scale(1.4,1.4,1.4)
+    left_item:setItem(player:getItem(2))
+    left_item_world:setDisplayMode("THIRD_PERSON_LEFT_HAND")
+    left_item_world:pos(1,-1,0)
+    left_item_world:rot(90,180,0)
+    left_item_world:scale(1.4,1.4,1.4)
+    left_item_world:setItem(player:getItem(2))
     local _vec2 = vectors.vec3(0,0,0)
     _vec2 = player:getPos(delta):scale(16)
     
     --fuck it im hard coding the values in
     local _values = {vectors.vec3(0,23,0),      --normal
-                    vectors.vec3(0,20,0),   --sneak
-                    vectors.vec3(0,10,0)}    --sleeping
+                    vectors.vec3(0,20,0),       --sneak
+                    vectors.vec3(0,8,0),        --sleeping
+                    vectors.vec3(0,5,0)}        --sleeping+sneak
     local _v = 1
 
     if (STATE == IDLE) then
         _v = 1
     elseif (STATE == SNEAKING) then
         _v = 2
-    elseif (STATE == SLEEPING) then
+    elseif (STATE == SLEEPING and not player:isSneaking()) then
         _v = 3
+    elseif (STATE == SLEEPING and player:isSneaking()) then
+        _v = 4
     end
     local _target = vectors.vec3(_vec2.x+_values[_v].x, _vec2.y+_values[_v].y, _vec2.z+_values[_v].z)
-    models.vel_head.World.D_Head:setPos(math.lerp(models.vel_head.World.D_Head:getPos(), 
+    models.vel_head.World.D_Head:setPos(math.lerp(models.vel_head.World.D_Head:getPos(delta), 
                                                 _target,
                                                  0.3)) --hard coded vals
-    models.vel_head.World.D_Head:setRot(-(player:getRot().x), -(player:getRot().y+180), 0)
+    models.vel_head.World.D_Head:setRot(-(player:getRot(delta).x), -(player:getRot(delta).y+180), 0)
     
     local _act = _my_page:getAction(6) --toggle_snout
     local _is_toggled = _act:isToggled()
@@ -368,7 +399,7 @@ events.RENDER:register(function (delta, context)
             models.vel.Vel:setVisible(false)
         end
     else
-        vanilla_model.HELD_ITEMS:setVisible(true)
+        vanilla_model.HELD_ITEMS:setVisible(false)
         models.vel.Vel:setVisible(true) 
         models.vel_head.World.D_Head:setVisible(false)
         
