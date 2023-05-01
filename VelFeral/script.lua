@@ -35,10 +35,10 @@ function model_parts_init()
 
 
     tex = models.vel:getTextures()
-    models.vel.Vel.D_Body.D_ForeLeft:setPrimaryTexture("CUSTOM",tex[2]) --_tex[2] is default
-    models.vel.Vel.D_Body.D_ForeRight:setPrimaryTexture("CUSTOM",tex[2]) --tex[5] is socks
-    models.vel.Vel.D_Body.D_HindLeftLeg:setPrimaryTexture("CUSTOM",tex[2])
-    models.vel.Vel.D_Body.D_HindRightLeg:setPrimaryTexture("CUSTOM",tex[2])
+    body.D_ForeLeft:setPrimaryTexture("CUSTOM",tex[2]) --_tex[2] is default
+    body.D_ForeRight:setPrimaryTexture("CUSTOM",tex[2]) --tex[5] is socks
+    body.D_HindLeftLeg:setPrimaryTexture("CUSTOM",tex[2])
+    body.D_HindRightLeg:setPrimaryTexture("CUSTOM",tex[2])
     --body.D_Tail.Slit:setVisible(false)
     body.D_Tail.Slit.Cocc:setVisible(false)
     --body.D_Tail.Donut:setVisible(false)
@@ -56,6 +56,7 @@ function action_wheel_init()
     local _action_toggle_erection   = _my_page:newAction()
     local _action_toggle_throb      = _my_page:newAction()
     local _action_toggle_socks      = _my_page:newAction()
+    local _action_toggle_snout      = _my_page:newAction()
     local _col                      = vectors.vec3(255/255,128/255,0/255) --Vel's eye color in RGB
     local _hover_col                = vectors.vec3(255/255,0/255,0/255) --Red
     
@@ -98,6 +99,15 @@ function action_wheel_init()
     _action_toggle_socks:setToggleColor(_col)
     _action_toggle_socks:setHoverColor(_hover_col)
 
+    --_action_toggle_snout
+    _action_toggle_snout:setItem("player_head{SkullOwner:wowMemeify}")
+    _action_toggle_snout:title("Toggle Visible Snout")
+    _action_toggle_snout:onToggle(pings.toggle_snout)
+    _action_toggle_snout:toggled(false)
+    _action_toggle_snout:setToggleColor(_col)
+    _action_toggle_snout:setHoverColor(_hover_col)
+    log("ACTIONS: ",_my_page:getActions())
+
     action_wheel:setPage(_my_page)
     log("ACTION_WHEEL_INIT FINISHED")
 end
@@ -105,7 +115,7 @@ end
 function pings.random_sleep()
     if (math.random() < 0.5) then
         laydown = animations.vel.laydown
-        laydown:speed(0.3)
+        laydown:speed(0.7)
     else
         laydown = animations.vel.laydown2
         laydown:speed(0.7)
@@ -185,19 +195,20 @@ end
 
 function pings.toggle_socks(is_togged)
     if (is_togged == true) then
-        models.vel.Vel.D_Body.D_ForeLeft:setPrimaryTexture("CUSTOM",tex[5]) --_tex[2] is default
-        models.vel.Vel.D_Body.D_ForeRight:setPrimaryTexture("CUSTOM",tex[5]) --tex[5] is socks
-        models.vel.Vel.D_Body.D_HindLeftLeg:setPrimaryTexture("CUSTOM",tex[5])
-        models.vel.Vel.D_Body.D_HindRightLeg:setPrimaryTexture("CUSTOM",tex[5])
+        body.D_ForeLeft:setPrimaryTexture("CUSTOM",tex[5]) --_tex[2] is default
+        body.D_ForeRight:setPrimaryTexture("CUSTOM",tex[5]) --tex[5] is socks
+        body.D_HindLeftLeg:setPrimaryTexture("CUSTOM",tex[5])
+        body.D_HindRightLeg:setPrimaryTexture("CUSTOM",tex[5])
     else
-        models.vel.Vel.D_Body.D_ForeLeft:setPrimaryTexture("CUSTOM",tex[2]) --_tex[2] is default
-        models.vel.Vel.D_Body.D_ForeRight:setPrimaryTexture("CUSTOM",tex[2]) --tex[5] is socks
-        models.vel.Vel.D_Body.D_HindLeftLeg:setPrimaryTexture("CUSTOM",tex[2])
-        models.vel.Vel.D_Body.D_HindRightLeg:setPrimaryTexture("CUSTOM",tex[2])
+        body.D_ForeLeft:setPrimaryTexture("CUSTOM",tex[2]) --_tex[2] is default
+        body.D_ForeRight:setPrimaryTexture("CUSTOM",tex[2]) --tex[5] is socks
+        body.D_HindLeftLeg:setPrimaryTexture("CUSTOM",tex[2])
+        body.D_HindRightLeg:setPrimaryTexture("CUSTOM",tex[2])
     end
 end
 
-
+function pings.toggle_snout(is_toggled)
+end
 --  START   --
 log("MAIN LOADED")
 model_parts_init()
@@ -223,6 +234,7 @@ head_rot = vectors.vec3(0,0,0)
 
 original_pos = models.vel.Vel:getPos()
 orignial_player_rot = vectors.vec3(0,0,0)
+
 --X -> Y | Y -> X | Z -> Z
 --log(nameplate.ENTITY:getPos())
 
@@ -232,13 +244,19 @@ events.ENTITY_INIT:register(function ()
     --log(player:isSneaking())
     --log(player:getPos())
     player_vel = player:getVelocity()
+    player_speed = vectors.vec3(player_vel.x, 0, player_vel.z):length()
     --log(player_vel)
 end)
 
 --  TICK    --
 events.TICK:register(function ()
     player_vel = player:getVelocity()
+    player_speed = vectors.vec3(player_vel.x, 0, player_vel.z):length()
+    --log_wait(player:getRot(),60)
+    --log_wait(models.vel.Vel:getRot(),60)
     laydown:setOverride(true)
+
+    --models.vel_head.D_Head:setPos(vanilla_model.HEAD:getPos())
     --log_wait(animations.vel.genitals_squish:getPlayState(),60)
     --local part_mat = head:partToWorldMatrix()
     --nameplate.ENTITY:setPivot(part_mat[1][1],3+part_mat[2][2],part_mat[3][3])
@@ -248,6 +266,18 @@ events.TICK:register(function ()
     --log(animations.vel.laydown2:getBlend())
     --log_wait("test",60)
     --log_wait(models.vel.Vel:getParentType(),30)
+    if not (STATE == SLEEPING) then
+        if (player:isUnderwater()) then
+            body:setRot(90,0,0)
+            animations.vel.swimming_slow:play()
+            if (player:isVisuallySwimming()) then
+                animations.vel.swimming_slow:stop()
+            end
+        else
+            body:setRot(0,0,0)
+            animations.vel.swimming_slow:stop()
+        end
+    end
     if (STATE == IDLE) then
         if (player:isSneaking()) then
             STATE = SNEAKING
@@ -256,7 +286,7 @@ events.TICK:register(function ()
         end
         
     elseif (STATE == SLEEPING) or (STATE == SLEEPING_BED) then
-        
+        animations.vel.idle:stop()
         if not (original_rot == head_rot) then
             head:setRot(original_rot)
         end
@@ -268,10 +298,13 @@ events.TICK:register(function ()
     end
     
     if (player:isSneaking()) then
-        if (animations.vel.laydown:getPlayState() == "PLAYING") or (animations.vel.idle:getPlayState() == "PLAYING") then
+        --[[if (animations.vel.laydown:getPlayState() == "PLAYING") or (animations.vel.idle:getPlayState() == "PLAYING") then
             body:setPos(0,2,0) --do not change this. 2 seems to be pretty good to still be in the ground
         elseif (animations.vel.laydown2:getPlayState() == "PLAYING") then
             body:setPos(-2,0,0)
+        end--]]
+        if not (STATE == SLEEPING) then
+            body:setPos(0,2,0) --do not change this. 2 seems to be pretty good to still be in the ground
         end
         
                             -- -2 for other
@@ -297,7 +330,52 @@ end)
 
 --  RENDER  --
 events.RENDER:register(function (delta, context)
-    --models.vel.Vel:setVisible(context == "FIRST_PERSON")
+    local _vec2 = vectors.vec3(0,0,0)
+    _vec2 = player:getPos(delta):scale(16)
+    
+    --fuck it im hard coding the values in
+    local _values = {vectors.vec3(0,23,0),      --normal
+                    vectors.vec3(0,20,0),   --sneak
+                    vectors.vec3(0,10,0)}    --sleeping
+    local _v = 1
+
+    if (STATE == IDLE) then
+        _v = 1
+    elseif (STATE == SNEAKING) then
+        _v = 2
+    elseif (STATE == SLEEPING) then
+        _v = 3
+    end
+    local _target = vectors.vec3(_vec2.x+_values[_v].x, _vec2.y+_values[_v].y, _vec2.z+_values[_v].z)
+    models.vel_head.World.D_Head:setPos(math.lerp(models.vel_head.World.D_Head:getPos(), 
+                                                _target,
+                                                 0.3)) --hard coded vals
+    models.vel_head.World.D_Head:setRot(-(player:getRot().x), -(player:getRot().y+180), 0)
+    
+    local _act = _my_page:getAction(6) --toggle_snout
+    local _is_toggled = _act:isToggled()
+  
+    if (renderer:isFirstPerson()) then
+        vanilla_model.HELD_ITEMS:setVisible(true and not _is_toggled)
+        models.vel_head.World.D_Head:setVisible(true and _is_toggled)
+        if (client.isPaused()) then
+            models.vel.Vel:setVisible(context == "FIGURA_GUI")
+        else
+            models.vel.Vel:setVisible(context == "PAPERDOLL")
+        end
+        
+        if (STATE == SLEEPING) then
+            models.vel.Vel:setVisible(false)
+        end
+    else
+        vanilla_model.HELD_ITEMS:setVisible(true)
+        models.vel.Vel:setVisible(true) 
+        models.vel_head.World.D_Head:setVisible(false)
+        
+    end
+   
+    --models.vel.Vel:setVisible(context == "PAPERDOLL")
+    renderer:shadowRadius(1.2) --DONOT CHANGE
     --I HATE BLENDING
     if not (blend == nil) and not (blend_dir == nil) then
         --blend = animations.vel.laydown2:getBlend()
@@ -323,9 +401,9 @@ events.RENDER:register(function (delta, context)
         --                                look_dir.x,
         --                                0)
         --local mult = 100
-        if (math.abs(player_vel:length()) > 0) then
+        if (math.abs(player_speed) > 0) then
             local _speed_mult = 12
-            walk:speed(_speed_mult*player_vel:length())
+            walk:speed(_speed_mult*player_speed)
             walk:play()
         else
             walk:speed(0)
@@ -343,13 +421,23 @@ events.RENDER:register(function (delta, context)
     if (STATE == SLEEPING) then
         models.vel.Vel:setParentType("World")
         --models.vel.Vel:setVisible(context ~= "FIRST_PERSON")
-        
-        models.vel.Vel:setPos(player:getPos(delta):scale(16))
+        --[[if (player:isSneaking()) then
+            if (animations.vel.laydown:getPlayState() == "PLAYING") or (animations.vel.idle:getPlayState() == "PLAYING") then
+                body:setPos(0,2,0) --do not change this. 2 seems to be pretty good to still be in the ground
+            elseif (animations.vel.laydown2:getPlayState() == "PLAYING") then
+                body:setPos(-2,0,0)
+            end
+        end--]]
+        local _vec = vectors.vec3(0,0,0)
+        _vec = player:getPos(delta):scale(16)
+        models.vel.Vel:setPos(_vec)
         if (animations.vel.laydown:getPlayState() == "PLAYING") then
-            models.vel.Vel:setRot(0, orignial_player_rot.y*16, 0)
+            models.vel.Vel:setRot(0, -(orignial_player_rot.y+180), 0)
         elseif (animations.vel.laydown2:getPlayState() == "PLAYING") then
-            models.vel.Vel:setRot(orignial_player_rot.x*(-16), 0, 0)
+            models.vel.Vel:setRot(orignial_player_rot.y+180, 0, 0)
         end
+        
+        
         renderer:setOffsetCameraPivot(0,-1,0)
     else
         --models.vel.Vel:setVisible(context == "FIRST_PERSON")
