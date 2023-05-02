@@ -113,14 +113,16 @@ function action_wheel_init()
 end
 
 function pings.random_sleep()
-    if (math.random() < 0.5) then
+    if (math.random() < 0.3) then
         laydown = animations.vel.laydown
         laydown:speed(0.7)
-    else
+    elseif (math.random() < 0.7) then
         laydown = animations.vel.laydown2
         laydown:speed(0.7)
+    else
+        laydown = animations.vel.laydown3
+        laydown:speed(0.3)
     end
-
     walk:stop()
     laydown:play()
 end
