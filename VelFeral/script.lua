@@ -50,7 +50,7 @@ end
 
 --Actions
 function action_wheel_init()
-    _my_page                        = action_wheel:newPage()
+    _my_page                        = action_wheel:newPage("Page 1")
     local _action_sleep             = _my_page:newAction()
     local _action_toggle_genitals   = _my_page:newAction()
     local _action_toggle_erection   = _my_page:newAction()
@@ -399,9 +399,11 @@ events.RENDER:register(function (delta, context)
         
         if (STATE == SLEEPING) then
             models.vel.Vel:setVisible(false)
+            body.D_Tail.Slit.Cocc:setVisible(false)
         end
     else
         vanilla_model.HELD_ITEMS:setVisible(false)
+        body.D_Tail.Slit.Cocc:setVisible(true)
         models.vel.Vel:setVisible(true) 
         models.vel_head.World.D_Head:setVisible(false)
         
