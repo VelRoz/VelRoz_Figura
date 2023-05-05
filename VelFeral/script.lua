@@ -328,10 +328,43 @@ events.TICK:register(function ()
         body:setRot(0,0,0)
     end
 end)
+function tail_phys_stuff()
+    local _sin1 = math.sin(world.getTime()/20)*10
+    local _vel = player:getVelocity():scale(13)
+    local _lerp = math.lerp(tail_0:getRot().x+0.5,_vel.y,0.15)
+    tail_0:setRot(_lerp,_sin1,0)
+    tail_1:setRot(_lerp,_sin1,0)
+    tail_2:setRot(_lerp,_sin1,0)
+    tail_3:setRot(_lerp,_sin1,0)
+end
+
+function cocc_phys_stuff()
+    local _vel = player:getVelocity():scale(60)
+    local _lerpx = math.lerp(tail_0.Slit.Cocc.Cocc_Base:getRot().x+0.05,_vel.y,0.02)
+    local _lerpy = math.lerp(tail_0.Slit.Cocc.Cocc_Base:getRot().y+0.05,_vel.x,0.02)
+    
+    tail_0.Slit.Cocc.Cocc_Base:setRot(_lerpx,0,_lerpy)
+    tail_0.Slit.Cocc.Cocc_Base.Cocc_Seg1:setRot(_lerpx,0,_lerpy)
+    tail_0.Slit.Cocc.Cocc_Base.Cocc_Seg1.Cocc_Tip:setRot(_lerpx,0,_lerpy)
+end
+
+function tail_reset()
+    tail_0:setRot(0,0,0)
+    tail_1:setRot(0,0,0)
+    tail_2:setRot(0,0,0)
+    tail_3:setRot(0,0,0)
+end
+
+function cocc_reset()
+    tail_0.Slit.Cocc.Cocc_Base:setRot(0,0,0)
+    tail_0.Slit.Cocc.Cocc_Base.Cocc_Seg1:setRot(0,0,0)
+    tail_0.Slit.Cocc.Cocc_Base.Cocc_Seg1.Cocc_Tip:setRot(0,0,0)
+end
 
 --  RENDER  --
 events.RENDER:register(function (delta, context)
     --head.D_UpperJaw.Eyes:setLight(15,15)
+    
     right_item:setDisplayMode("THIRD_PERSON_RIGHT_HAND")
     right_item:pos(1,-1,0)
     right_item:rot(90,180,0)
@@ -413,7 +446,7 @@ events.RENDER:register(function (delta, context)
         end
     else
         vanilla_model.HELD_ITEMS:setVisible(false)
-        --body.D_Tail.Slit.Cocc:setVisible(true and _is_toggled2)
+        body.D_Tail.Slit.Cocc:setVisible(true and _is_toggled2)
         models.vel.Vel:setVisible(true) 
         models.vel_head.World.D_Head:setVisible(false)
         
@@ -442,8 +475,9 @@ events.RENDER:register(function (delta, context)
         
         
     end
-    if not (STATE == SLEEPING) or (STATE == SLEEPING_BED) then
+    if not (STATE == SLEEPING or STATE == SLEEPING_BED) then
         --models.vel.Vel:setParentType("World")
+        
         local _vec = vectors.vec3(0,0,0)
         _vec = player:getPos(delta):scale(16)
         models.vel.Vel:setPos(_vec)
@@ -476,6 +510,8 @@ events.RENDER:register(function (delta, context)
     end
     
     if (STATE == SLEEPING) then
+        tail_reset()
+        cocc_reset()
         models.vel.Vel:setParentType("World")
         --models.vel.Vel:setVisible(context ~= "FIRST_PERSON")
         --[[if (player:isSneaking()) then
@@ -500,7 +536,10 @@ events.RENDER:register(function (delta, context)
         renderer:setOffsetCameraPivot(0,-1,0)
     else
         --models.vel.Vel:setVisible(context == "FIRST_PERSON")
-        --models.vel.Vel:setParentType("None")
+        tail_phys_stuff()
+        cocc_phys_stuff()
+
+        models.vel.Vel:setParentType("None")
         models.vel.Vel:setPos(original_pos)
         models.vel.Vel:setRot(0,0,0)
         renderer:setOffsetCameraPivot(0,0,0)
