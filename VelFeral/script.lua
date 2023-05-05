@@ -215,7 +215,8 @@ end
 log("MAIN LOADED")
 model_parts_init()
 action_wheel_init()
-
+animations.vel.cock_leave:setTime(9999)
+animations.vel.genitals_leave:setTime(9999)
 --log(models.vel:getPrimaryTexture())
 
 player_vel = vectors.vec3(0,0,0)
@@ -242,6 +243,8 @@ right_item_world = models.vel_head.World.D_Head.D_LowerJaw.RightItemPivot:newIte
 left_item = head.D_LowerJaw.LeftItemPivot:newItem("left_item") 
 left_item_world = models.vel_head.World.D_Head.D_LowerJaw.LeftItemPivot:newItem("left_item_world")
 
+
+
 --X -> Y | Y -> X | Z -> Z
 --log(nameplate.ENTITY:getPos())
 
@@ -259,12 +262,12 @@ end)
 --models.vel_head.World.D_Head.D_LowerJaw.RightItemPivot:setPi
 --  TICK    --
 events.TICK:register(function ()
+    --log_wait(player:getPose(),60)
     player_vel = player:getVelocity()
     player_speed = vectors.vec3(player_vel.x, 0, player_vel.z):length()
     --log_wait(player:getRot(),60)
     --log_wait(models.vel.Vel:getRot(),60)
     laydown:setOverride(true)
-
     --models.vel_head.D_Head:setPos(vanilla_model.HEAD:getPos())
     --log_wait(animations.vel.genitals_squish:getPlayState(),60)
     --local part_mat = head:partToWorldMatrix()
@@ -275,18 +278,7 @@ events.TICK:register(function ()
     --log(animations.vel.laydown2:getBlend())
     --log_wait("test",60)
     --log_wait(models.vel.Vel:getParentType(),30)
-    if not (STATE == SLEEPING) then
-        if (player:isUnderwater()) then
-            body:setRot(90,0,0)
-            animations.vel.swimming_slow:play()
-            if (player:isVisuallySwimming()) then
-                animations.vel.swimming_slow:stop()
-            end
-        else
-            body:setRot(0,0,0)
-            animations.vel.swimming_slow:stop()
-        end
-    end
+    
     if (STATE == IDLE) then
         if (player:isSneaking()) then
             STATE = SNEAKING
@@ -339,6 +331,7 @@ end)
 
 --  RENDER  --
 events.RENDER:register(function (delta, context)
+    --head.D_UpperJaw.Eyes:setLight(15,15)
     right_item:setDisplayMode("THIRD_PERSON_RIGHT_HAND")
     right_item:pos(1,-1,0)
     right_item:rot(90,180,0)
@@ -360,6 +353,18 @@ events.RENDER:register(function (delta, context)
     left_item_world:rot(90,180,0)
     left_item_world:scale(1.4,1.4,1.4)
     left_item_world:setItem(player:getItem(2))
+    local _ll = world.getBlockLightLevel(player:getPos())
+    local _ll2 = world.getSkyLightLevel(player:getPos())
+    
+    body:setLight(_ll,_ll2)
+    --right_item:setLight(15-_ll,15)
+    --right_item_world:setLight(15-_ll,15)
+    --left_item:setLight(15-_ll,15)
+    --left_item_world:setLight(15-_ll,15)
+    local _sin1 = (math.sin(world.getTime())+1)/2
+    local _sin2 = (math.sin(world.getTime()/5)*3+3)/2
+    local _result = (_sin1 + _sin2)*3.5+1 --obtained through desmos
+    head.D_UpperJaw.Eyes:setLight(_result,0)
     local _vec2 = vectors.vec3(0,0,0)
     _vec2 = player:getPos(delta):scale(16)
     
@@ -370,6 +375,7 @@ events.RENDER:register(function (delta, context)
                     vectors.vec3(0,5,0)}        --sleeping+sneak
     local _v = 1
 
+    --log(world.getSkyLightLevel(player:getPos()))
     if (STATE == IDLE) then
         _v = 1
     elseif (STATE == SNEAKING) then
@@ -386,7 +392,9 @@ events.RENDER:register(function (delta, context)
     models.vel_head.World.D_Head:setRot(-(player:getRot(delta).x), -(player:getRot(delta).y+180), 0)
     
     local _act = _my_page:getAction(6) --toggle_snout
+    local _act2 = _my_page:getAction(2) --toggle_genitals
     local _is_toggled = _act:isToggled()
+    local _is_toggled2 = _act2:isToggled()
   
     if (renderer:isFirstPerson()) then
         vanilla_model.HELD_ITEMS:setVisible(true and not _is_toggled)
@@ -400,10 +408,12 @@ events.RENDER:register(function (delta, context)
         if (STATE == SLEEPING) then
             models.vel.Vel:setVisible(false)
             body.D_Tail.Slit.Cocc:setVisible(false)
+        else
+            body.D_Tail.Slit.Cocc:setVisible(true)
         end
     else
         vanilla_model.HELD_ITEMS:setVisible(false)
-        body.D_Tail.Slit.Cocc:setVisible(true)
+        --body.D_Tail.Slit.Cocc:setVisible(true and _is_toggled2)
         models.vel.Vel:setVisible(true) 
         models.vel_head.World.D_Head:setVisible(false)
         
@@ -428,14 +438,26 @@ events.RENDER:register(function (delta, context)
         animations.vel.sneak:stop()
         animations.vel.sneaktailwag:stop()
     end
-    
+    if not (STATE == SLEEPING) then
+        
+        
+    end
     if not (STATE == SLEEPING) or (STATE == SLEEPING_BED) then
+        --models.vel.Vel:setParentType("World")
+        local _vec = vectors.vec3(0,0,0)
+        _vec = player:getPos(delta):scale(16)
+        models.vel.Vel:setPos(_vec)
         --local player_rot = vectors.vec3(-player:getRot().x, -player:getRot().y, 0)
         --local look_dir = player:getLookDir()
         --local trans_dir = vectors.vec3(math.clamp(look_dir.y,-0.75,0.85),
         --                                look_dir.x,
         --                                0)
         --local mult = 100
+        if (player:isVisuallySwimming()) then
+            
+        else
+            --models.vel.Vel:setParentType("None")
+        end
         if (math.abs(player_speed) > 0) then
             local _speed_mult = 12
             walk:speed(_speed_mult*player_speed)
@@ -470,13 +492,15 @@ events.RENDER:register(function (delta, context)
             models.vel.Vel:setRot(0, -(orignial_player_rot.y+180), 0)
         elseif (animations.vel.laydown2:getPlayState() == "PLAYING") then
             models.vel.Vel:setRot(orignial_player_rot.y+180, 0, 0)
+        elseif (animations.vel.laydown3:getPlayState() == "PLAYING") then
+            models.vel.Vel:setRot(0, -(orignial_player_rot.y+180), 0)
         end
         
         
         renderer:setOffsetCameraPivot(0,-1,0)
     else
         --models.vel.Vel:setVisible(context == "FIRST_PERSON")
-        models.vel.Vel:setParentType("None")
+        --models.vel.Vel:setParentType("None")
         models.vel.Vel:setPos(original_pos)
         models.vel.Vel:setRot(0,0,0)
         renderer:setOffsetCameraPivot(0,0,0)
